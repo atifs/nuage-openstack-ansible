@@ -1,1 +1,1 @@
-Ansible Playbooks to Integrate Nuage VSP with Openstack
+Nuage VRS configuration playbooks for Nuage Openstack Integration
