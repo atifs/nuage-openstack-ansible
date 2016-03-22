@@ -1,0 +1,5 @@
+- hosts: compute_hosts
+  user: root
+  roles:
+    - nuage_nova
+    - nuage_metadata_agent

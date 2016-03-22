@@ -1,0 +1,137 @@
+- name: Removing pre-exiting sources.list
+  file: path=/etc/apt/sources.list.d/nuage.list state=absent
+
+- name: Create Nuage sources.list
+  lineinfile:
+    dest: /etc/apt/sources.list.d/nuage.list
+    line: "{{ nuage_vrs_debs_repo }} {{ images_dir }}/"
+    state: present
+    create: yes
+
+- name: Running apt-update
+  apt:
+    update_cache: yes
+  ignore_errors: True
+
+- name: Install python-novaclient
+  apt:
+    name: "{{ python_novaclient }}"
+    state: latest
+    force: yes
+
+- name: Install nuage-metadata-agent
+  apt:
+    name: "{{ nuage_metadata_agent }}"
+    state: latest
+    force: yes
+
+- shell: cat /etc/nova/nova.conf | grep metadata_proxy_shared_secret | awk '{print $3;}' > "{{ metadata_secret_file }}"
+
+- shell: cat /etc/nova/nova.conf | grep auth_uri | awk '{print $3;}' > "{{ auth_uri_file }}"
+
+- shell: cat /etc/nova/nova.conf | grep my_ip | awk '{print $3;}' > "{{ metadata_ip_file }}"
+
+- shell: cat /etc/nova/nova.conf | grep project_name | awk '{print $3;}' | head -1 > "{{ project_name_file }}"
+
+- shell: grep ^password /etc/nova/nova.conf | awk '{print $3;}' | tail -1 > "{{ nova_password_file }}"
+
+- name: configure metadata port to listen for metadata server requests
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "METADATA_PORT"
+    value: "{{ metadata_port }}"
+
+- name: configure Nova metadata IP
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_METADATA_IP"
+    value: "{{ lookup('file', '/root/metadata_ip.txt') }}"
+
+- name: configure TCP Port used by Nova metadata server
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_METADATA_PORT"
+    value: "{{ nova_metadata_port }}"
+
+- name: configure metadata proxy shared secret
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "METADATA_PROXY_SHARED_SECRET"
+    value: "{{ lookup('file', '/root/secret.txt') }}"
+
+- name: configure Nova client version
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_CLIENT_VERSION"
+    value: "{{ nova_client_version }}"
+
+- name: configure Nova Openstack Username
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_OS_USERNAME"
+    value: "{{ nova_os_username }}"
+
+- name: configure Nova Openstack Password
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_OS_PASSWORD"
+    value: "{{ lookup('file', '/root/nova_password.txt') }}"
+
+- name: configure Nova Openstack Tenant name
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_OS_TENANT_NAME"
+    value: "{{ lookup('file', '/root/project_name.txt') }}"
+
+- name: configure Nova Openstack auth url
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_OS_AUTH_URL"
+    value: "{{ lookup('file', '/root/auth_uri.txt') }}/v2.0"
+
+- name: configure Nova API Endpoint type
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_API_ENDPOINT_TYPE"
+    value: "{{ nova_api_endpoint_type }}"
+
+- name: configure Nova Region Name
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NOVA_REGION_NAME"
+    value: "{{ nova_region_name }}"
+
+- name: configure Nuage Metadata Agent restart with OVS
+  ini_file:
+    dest: "/etc/default/nuage-metadata-agent"
+    section: "DEFAULT"
+    option: "NUAGE_METADATA_AGENT_START_WITH_OVS"
+    value: "true"
+
+# Restart Nuage openvswitch-switch
+- name: start nuage openvswitch
+  service:
+    name: "{{ nuage_openvswitch_switch }}"
+    state: "restarted"
+
+# Cleanup of unwanted temp files
+- shell: rm "{{ metadata_secret_file }}"
+ 
+- shell: rm "{{ auth_uri_file }}"
+ 
+- shell: rm "{{ metadata_ip_file }}"
+
+- shell: rm "{{ project_name_file }}"
+
+- shell: rm "{{ nova_password_file }}"

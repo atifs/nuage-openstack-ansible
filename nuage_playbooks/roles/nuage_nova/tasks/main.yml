@@ -1,0 +1,101 @@
+# Remove sources file if exists
+- name: Removing pre-exiting sources.list
+  file: path=/etc/apt/sources.list.d/nuage.list state=absent
+
+# Create a Nuage sources.list
+- name: Create Nuage sources.list
+  lineinfile:
+    dest: /etc/apt/sources.list.d/nuage.list
+    line: "{{ nuage_vrs_debs_repo }} {{ images_dir }}/"
+    state: present
+    create: yes
+
+# Update repositories
+- name: Running apt-update
+  apt:
+    update_cache: yes
+  ignore_errors: True
+
+- name: stop nova compute service
+  service:
+    name: "{{ nova_compute }}"
+    state: "stopped"
+  ignore_errors: True
+
+- name: stop neutron linuxbridge agent service
+  service:
+    name: "{{ neutron_linuxbridge_agent }}"
+    state: "stopped"
+  ignore_errors: True
+
+# Install nuage-openvswitch-common package
+- name: Install nuage-openvswitch-common
+  apt:
+    name: "{{ nuage_openvswitch_common }}"
+    state: latest
+    force: yes
+
+# Install nuage-python-openvswitch package
+- name: Install nuage-python-openvswitch
+  apt:
+    name: "{{ nuage_python_openvswitch }}"
+    state: latest
+    force: yes
+
+# Install nuage-openvswitch-switch package
+- name: Install nuage-openvswitch-switch package
+  apt:
+    name: "{{ nuage_openvswitch_switch }}"
+    state: latest
+    force: yes
+
+- name: configure openvswitch master controller
+  lineinfile:
+    dest: /etc/default/openvswitch-switch
+    regexp: '^ACTIVE_CONTROLLER='
+    line: 'ACTIVE_CONTROLLER="{{active_controller}}"'
+
+- name: configure openvswitch slave controller
+  lineinfile:
+    dest: /etc/default/openvswitch-switch
+    regexp: '^STANDBY_CONTROLLER='
+    line: 'STANDBY_CONTROLLER="{{standby_controller}}"'
+  when: standby_controller is defined
+
+- name: start nuage openvswitch
+  service:
+    name: "{{ nuage_openvswitch_switch }}"
+    state: "restarted"
+
+- name: configure nova firewall_driver
+  ini_file:
+    dest: "/etc/nova/nova.conf"
+    section: "DEFAULT"
+    option: "firewall_driver"
+    value: "nova.virt.firewall.NoopFirewallDriver"
+
+- name: configure nova ovs_bridge
+  ini_file:
+    dest: "/etc/nova/nova.conf"
+    section: "neutron"
+    option: "ovs_bridge"
+    value: "alubr0"
+
+- name: configure nova vif_driver
+  ini_file:
+    dest: "/etc/nova/nova.conf"
+    section: "DEFAULT"
+    option: "vif_driver"
+    value: "nova.virt.libvirt.vif.LibvirtGenericVIFDriver"
+
+- name: configure security group api
+  ini_file:
+    dest: "/etc/nova/nova.conf"
+    section: "DEFAULT"
+    option: "security_group_api"
+    value: "neutron"
+
+- name: start nova compute
+  service:
+    name: "{{ nova_compute }}"
+    state: "restarted"
