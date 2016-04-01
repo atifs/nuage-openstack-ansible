@@ -58,3 +58,6 @@ nova_client_version: "2"
 nova_os_username: "nova"
 nova_api_endpoint_type: "publicURL"
 nova_region_name: "RegionOne"
+
+# Nuage nova network type to override OSA default linuxbridge
+nova_network_type: "nuage"
