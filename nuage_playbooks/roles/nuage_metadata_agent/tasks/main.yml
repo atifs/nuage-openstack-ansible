@@ -35,89 +35,78 @@
 
 - shell: grep ^password /etc/nova/nova.conf | awk '{print $3;}' | tail -1 > "{{ nova_password_file }}"
 
-- name: configure metadata port to listen for metadata server requests
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "METADATA_PORT"
-    value: "{{ metadata_port }}"
+- fetch: src=/root/metadata_ip.txt dest=/root
 
-- name: configure Nova metadata IP
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_METADATA_IP"
-    value: "{{ lookup('file', '/root/metadata_ip.txt') }}"
+- fetch: src=/root/secret.txt dest=/root
 
-- name: configure TCP Port used by Nova metadata server
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_METADATA_PORT"
-    value: "{{ nova_metadata_port }}"
+- fetch: src=/root/nova_password.txt dest=/root
 
-- name: configure metadata proxy shared secret
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "METADATA_PROXY_SHARED_SECRET"
-    value: "{{ lookup('file', '/root/secret.txt') }}"
+- fetch: src=/root/project_name.txt dest=/root
 
-- name: configure Nova client version
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_CLIENT_VERSION"
-    value: "{{ nova_client_version }}"
+- fetch: src=/root/auth_uri.txt dest=/root
 
-- name: configure Nova Openstack Username
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_OS_USERNAME"
-    value: "{{ nova_os_username }}"
+- name: Create nuage-metadata-agent configuration file
+  file: path=/etc/default/nuage-metadata-agent state=touch
 
-- name: configure Nova Openstack Password
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_OS_PASSWORD"
-    value: "{{ lookup('file', '/root/nova_password.txt') }}"
+- name: Add metadata port
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "METADATA_PORT={{ metadata_port }}"
 
-- name: configure Nova Openstack Tenant name
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_OS_TENANT_NAME"
-    value: "{{ lookup('file', '/root/project_name.txt') }}"
+- name: Add nova metadata ip
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_METADATA_IP={{ lookup('file', '/root/compute1/root/metadata_ip.txt') }}"
 
-- name: configure Nova Openstack auth url
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_OS_AUTH_URL"
-    value: "{{ lookup('file', '/root/auth_uri.txt') }}/v2.0"
+- name: Add nova metadata port
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_METADATA_PORT={{ nova_metadata_port }}"
 
-- name: configure Nova API Endpoint type
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_API_ENDPOINT_TYPE"
-    value: "{{ nova_api_endpoint_type }}"
+- name: Add metadata proxy shared secret
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "METADATA_PROXY_SHARED_SECRET={{ lookup('file', '/root/compute1/root/secret.txt') }}"
 
-- name: configure Nova Region Name
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NOVA_REGION_NAME"
-    value: "{{ nova_region_name }}"
+- name: Add nova client version
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_CLIENT_VERSION={{ nova_client_version }}"
 
-- name: configure Nuage Metadata Agent restart with OVS
-  ini_file:
-    dest: "/etc/default/nuage-metadata-agent"
-    section: "DEFAULT"
-    option: "NUAGE_METADATA_AGENT_START_WITH_OVS"
-    value: "true"
+- name: Add nova openstack username
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_OS_USERNAME={{ nova_os_username }}"
+
+- name: Add nova openstack password
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_OS_PASSWORD={{ lookup('file', '/root/compute1/root/nova_password.txt') }}"
+
+- name: Add nova openstack tenant name
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_OS_TENANT_NAME={{ lookup('file', '/root/compute1/root/project_name.txt') }}"
+
+- name: Add Nova Openstack auth url
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_OS_AUTH_URL={{ lookup('file', '/root/compute1/root/auth_uri.txt') }}/v2.0"
+
+- name: Add Nova API Endpoint type
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_API_ENDPOINT_TYPE={{ nova_api_endpoint_type }}"
+
+- name: Add  Nova Region Name
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NOVA_REGION_NAME={{ nova_region_name }}"
+
+- name: Add Nuage Metadata Agent restart with OVS
+  lineinfile:
+    dest: /etc/default/nuage-metadata-agent
+    line: "NUAGE_METADATA_AGENT_START_WITH_OVS=true"
 
 # Restart Nuage openvswitch-switch
 - name: start nuage openvswitch
