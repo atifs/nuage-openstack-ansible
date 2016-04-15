@@ -61,6 +61,16 @@ neutron_services:
    config_options: --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/lbaas_agent.ini
    config_overrides: "{{ neutron_lbaas_agent_ini_overrides }}"
    config_type: "ini"
+ neutron-lbaasv2-agent:
+   group: neutron_lbaas_agent
+   service_name: neutron-lbaasv2-agent
+   service_en: False
+   service_conf: lbaas_agent.ini
+   service_group: neutron_agent
+   service_rootwrap: rootwrap.d/lbaas-haproxy.filters
+   config_options: --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/lbaas_agent.ini
+   config_overrides: "{{ neutron_lbaas_agent_ini_overrides }}"
+   config_type: "ini"
  neutron-server:
    group: neutron_server
    service_name: neutron-server
