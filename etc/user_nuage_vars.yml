@@ -6,10 +6,7 @@ active_controller: "172.29.236.31"
 
 # Nuage debians/wheel packages repository information
 nuage_vrs_debs_repo: "deb http://135.227.146.142/debs/3.2R4/vrs/"
-nuage_neutron_local_repo: "http://135.227.146.142/packages/neutron/liberty/"
 images_dir: "trusty"
-nuage_pip_install: "sudo -H /openstack/venvs/neutron-12.0.7/bin/pip install"
-trusted_host: "135.227.146.142"
 
 # Nuage packages/services
 nuage_openstack_neutron: "nuage-openstack-neutron"
@@ -58,6 +55,3 @@ nova_client_version: "2"
 nova_os_username: "nova"
 nova_api_endpoint_type: "publicURL"
 nova_region_name: "RegionOne"
-
-# Nuage nova network type to override OSA default linuxbridge
-nova_network_type: "nuage"
