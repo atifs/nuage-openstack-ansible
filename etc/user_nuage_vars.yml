@@ -55,3 +55,11 @@ nova_client_version: "2"
 nova_os_username: "nova"
 nova_api_endpoint_type: "publicURL"
 nova_region_name: "RegionOne"
+
+# Parameters for Nuage FIP to Underlay configuration
+fip_to_underlay_uplink_intf: "eth0"
+fip_to_underlay_vlan_tag: "9"
+fip_to_underlay_namespace: "fip9"
+fip_to_underlay_uplink_subintf: "eth0.9"
+fip_to_underlay_uplink_network: "192.168.1.19/24"
+fip_to_underlay_uplink_def_gw_ip: "192.168.1.1"

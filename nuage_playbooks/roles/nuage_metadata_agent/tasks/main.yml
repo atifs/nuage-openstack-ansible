@@ -1,4 +1,4 @@
-- name: Removing pre-exiting sources.list
+- name: Removing pre-existing sources.list
   file: path=/etc/apt/sources.list.d/nuage.list state=absent
 
 - name: Create Nuage sources.list

@@ -3,3 +3,4 @@
   roles:
     - nuage_nova
     - nuage_metadata_agent
+    - nuage_fip_to_underlay
