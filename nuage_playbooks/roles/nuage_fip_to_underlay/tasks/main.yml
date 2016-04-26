@@ -1,0 +1,26 @@
+- name: Configure Nuage FIP to Underlay
+  command: "{{item}}"
+  with_items:
+    - modprobe 8021q
+    - vconfig add {{ fip_to_underlay_uplink_intf }} {{ fip_to_underlay_vlan_tag }}
+    - ip netns add {{ fip_to_underlay_namespace }}
+    - ip link set {{ fip_to_underlay_uplink_subintf }} netns {{ fip_to_underlay_namespace }}
+    - ip netns exec {{ fip_to_underlay_namespace }} bash -c "ifconfig {{ fip_to_underlay_uplink_subintf }} up; ip addr add {{ fip_to_underlay_uplink_network }} dev {{ fip_to_underlay_uplink_subintf }}; route add default gw {{ fip_to_underlay_uplink_def_gw_ip }}"
+
+- name: Set underlay interface on the hypervisor
+  lineinfile:
+    dest: /etc/default/openvswitch-switch
+    regexp: '^NETWORK_UPLINK_INTF='
+    line: 'NETWORK_UPLINK_INTF="{{ fip_to_underlay_uplink_subintf }}"'
+
+- name: Set namespace value in openvswitch config file
+  lineinfile:
+    dest: /etc/default/openvswitch-switch
+    regexp: '^NETWORK_NAMESPACE='
+    line: "NETWORK_NAMESPACE={{ fip_to_underlay_namespace }}"
+
+# Restart Nuage openvswitch-switch
+- name: Restart nuage openvswitch
+  service:
+    name: "{{ nuage_openvswitch_switch }}"
+    state: "restarted"
