@@ -1,0 +1,2 @@
+- include: /opt/openstack-ansible/playbooks/setup-everything.yml
+- include: nuage_compute.yml
