@@ -51,7 +51,7 @@
 - name: Fetch nova password temp file
   fetch: src="/root/nova_password.txt" dest="{{ mktemp.stdout }}/nova_password.txt" flat=yes
 
-- name: Fetch projetc name temp file
+- name: Fetch project name temp file
   fetch: src="/root/project_name.txt" dest="{{ mktemp.stdout }}/project_name.txt" flat=yes
 
 - name: Extract metadata secret value
@@ -153,3 +153,6 @@
 - shell: rm "{{ project_name_file }}"
 
 - shell: rm "{{ nova_password_file }}"
+
+- name: Cleanup temp folders holding metadata agent temp generated files
+  local_action: command rm -irf "{{ mktemp.stdout }}"
