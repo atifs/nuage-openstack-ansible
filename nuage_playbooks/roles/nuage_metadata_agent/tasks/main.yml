@@ -35,15 +35,44 @@
 
 - shell: grep ^password /etc/nova/nova.conf | awk '{print $3;}' | tail -1 > "{{ nova_password_file }}"
 
-- fetch: src=/root/metadata_ip.txt dest=/root
+- name: Create a temp directory for nuage metadata agent parameter temporary generated files
+  local_action: command mktemp -d "/tmp/compute-{{ ansible_nodename }}-XXXXXXX"
+  register: mktemp
 
-- fetch: src=/root/secret.txt dest=/root
+- name: Fetch metadata secret temp file
+  fetch: src="/root/secret.txt" dest="{{ mktemp.stdout }}/secret.txt" flat=yes
 
-- fetch: src=/root/nova_password.txt dest=/root
+- name: Fetch auth URI temp file
+  fetch: src="/root/auth_uri.txt" dest="{{ mktemp.stdout }}/auth_uri.txt" flat=yes
 
-- fetch: src=/root/project_name.txt dest=/root
+- name: Fetch metadata IP temp file
+  fetch: src="/root/metadata_ip.txt" dest="{{ mktemp.stdout }}/metadata_ip.txt" flat=yes
 
-- fetch: src=/root/auth_uri.txt dest=/root
+- name: Fetch nova password temp file
+  fetch: src="/root/nova_password.txt" dest="{{ mktemp.stdout }}/nova_password.txt" flat=yes
+
+- name: Fetch project name temp file
+  fetch: src="/root/project_name.txt" dest="{{ mktemp.stdout }}/project_name.txt" flat=yes
+
+- name: Extract metadata secret value
+  local_action: command cat "{{ mktemp.stdout }}/secret.txt"
+  register: secret
+
+- name: Extract auth URI value
+  local_action: command cat "{{ mktemp.stdout }}/auth_uri.txt"
+  register: auth_uri
+
+- name: Extract metadata IP value
+  local_action: command cat "{{ mktemp.stdout }}/metadata_ip.txt"
+  register: metadata_ip
+
+- name: Extract nova password value
+  local_action: command cat "{{ mktemp.stdout }}/nova_password.txt"
+  register: nova_password
+
+- name: Extract project name value
+  local_action: command cat "{{ mktemp.stdout }}/project_name.txt"
+  register: project_name
 
 - name: Create nuage-metadata-agent configuration file
   file: path=/etc/default/nuage-metadata-agent state=touch
@@ -56,7 +85,7 @@
 - name: Add nova metadata ip
   lineinfile:
     dest: /etc/default/nuage-metadata-agent
-    line: "NOVA_METADATA_IP={{ lookup('file', '/root/compute1/root/metadata_ip.txt') }}"
+    line: "NOVA_METADATA_IP={{ metadata_ip.stdout }}"
 
 - name: Add nova metadata port
   lineinfile:
@@ -66,7 +95,7 @@
 - name: Add metadata proxy shared secret
   lineinfile:
     dest: /etc/default/nuage-metadata-agent
-    line: "METADATA_PROXY_SHARED_SECRET={{ lookup('file', '/root/compute1/root/secret.txt') }}"
+    line: "METADATA_PROXY_SHARED_SECRET={{ secret.stdout }}"
 
 - name: Add nova client version
   lineinfile:
@@ -81,17 +110,17 @@
 - name: Add nova openstack password
   lineinfile:
     dest: /etc/default/nuage-metadata-agent
-    line: "NOVA_OS_PASSWORD={{ lookup('file', '/root/compute1/root/nova_password.txt') }}"
+    line: "NOVA_OS_PASSWORD={{ nova_password.stdout }}"
 
 - name: Add nova openstack tenant name
   lineinfile:
     dest: /etc/default/nuage-metadata-agent
-    line: "NOVA_OS_TENANT_NAME={{ lookup('file', '/root/compute1/root/project_name.txt') }}"
+    line: "NOVA_OS_TENANT_NAME={{ project_name.stdout }}"
 
 - name: Add Nova Openstack auth url
   lineinfile:
     dest: /etc/default/nuage-metadata-agent
-    line: "NOVA_OS_AUTH_URL={{ lookup('file', '/root/compute1/root/auth_uri.txt') }}/v2.0"
+    line: "NOVA_OS_AUTH_URL={{ auth_uri.stdout }}/v2.0"
 
 - name: Add Nova API Endpoint type
   lineinfile:
@@ -124,3 +153,6 @@
 - shell: rm "{{ project_name_file }}"
 
 - shell: rm "{{ nova_password_file }}"
+
+- name: Cleanup temp folders holding metadata agent temp generated files
+  local_action: command rm -irf "{{ mktemp.stdout }}"
