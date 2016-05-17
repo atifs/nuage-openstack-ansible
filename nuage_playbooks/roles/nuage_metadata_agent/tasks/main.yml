@@ -55,23 +55,23 @@
   fetch: src="/root/project_name.txt" dest="{{ mktemp.stdout }}/project_name.txt" flat=yes
 
 - name: Extract metadata secret value
-  local_action: command cat "/tmp/compute-{{ ansible_nodename }}-XXXXXXX/secret.txt"
+  local_action: command cat "{{ mktemp.stdout }}/secret.txt"
   register: secret
 
 - name: Extract auth URI value
-  local_action: command cat "/tmp/compute-{{ ansible_nodename }}-XXXXXXX/auth_uri.txt"
+  local_action: command cat "{{ mktemp.stdout }}/auth_uri.txt"
   register: auth_uri
 
 - name: Extract metadata IP value
-  local_action: command cat "/tmp/compute-{{ ansible_nodename }}-XXXXXXX/metadata_ip.txt"
+  local_action: command cat "{{ mktemp.stdout }}/metadata_ip.txt"
   register: metadata_ip
 
 - name: Extract nova password value
-  local_action: command cat "/tmp/compute-{{ ansible_nodename }}-XXXXXXX/nova_password.txt"
+  local_action: command cat "{{ mktemp.stdout }}/nova_password.txt"
   register: nova_password
 
 - name: Extract project name value
-  local_action: command cat "/tmp/compute-{{ ansible_nodename }}-XXXXXXX/project_name.txt"
+  local_action: command cat "{{ mktemp.stdout }}/project_name.txt"
   register: project_name
 
 - name: Create nuage-metadata-agent configuration file
