@@ -29,7 +29,7 @@
 
 - shell: cat /etc/nova/nova.conf | grep auth_uri | awk '{print $3;}' > "{{ auth_uri_file }}"
 
-- shell: cat /etc/nova/nova.conf | grep my_ip | awk '{print $3;}' > "{{ metadata_ip_file }}"
+- shell: cat /etc/nova/nova.conf | grep metadata_host | awk '{print $3;}' > "{{ metadata_ip_file }}"
 
 - shell: cat /etc/nova/nova.conf | grep project_name | awk '{print $3;}' | head -1 > "{{ project_name_file }}"
 
